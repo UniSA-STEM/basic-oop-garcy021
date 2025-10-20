@@ -1,27 +1,31 @@
 """
 File: Rig.py
-Description: <A brief description of this Python module.>
-Author: <full name>
-ID: <student_id>
-Username: <username>
+Description: Implements the Rig class representing a hacker’s workstation, managing storage, upgrades, and durability.
+Author: CHIRAG GARG
+ID: 110395864
+Username: GARCY021
 This is my own work as defined by the University's Academic Misconduct Policy.
 """
 
 from Asset import Asset
 
+"""
+   Represents a hacker's rig — their digital workstation.
+   Handles storage, upgrades, durability, and asset management.
+"""
+
 class Rig:
     def __init__(self, name):
-        self._name = name
-        self._damage = 0
+        self._name = name  # Name of the rig
+        self._damage = 0    # Tracks damage level; when threshold reached, rig breaks
         self._broken = False
         self._upgrade_level = 0
-        self._storage = []
-        # initial loadout per spec
+        self._storage = []     # Holds the assets stored in this rig
+# Initial assets
         self._storage.append(Asset("Data Spike", "Offensive payload"))
         self._storage.append(Asset("Data Spike", "Offensive payload"))
         self._storage.append(Asset("Removable Drive", "Portable extraction media"))
 
-    # -------- Properties ----------
     @property
     def name(self):
         return self._name
@@ -43,7 +47,7 @@ class Rig:
         # returns the actual list (assignment expects simple interactions)
         return self._storage
 
-    # -------- Helpers ----------
+
     def _capacity(self):
         # base capacity 5, +3 per upgrade level
         return 5 + self._upgrade_level * 3
@@ -52,7 +56,7 @@ class Rig:
         # base break threshold 2, +1 per upgrade level
         return 2 + self._upgrade_level
 
-    def condition(self):
+    def condition(self):    #Return readable damage state of the rig.
         if self._broken:
             state = "Broken"
         elif self._damage == 0:
@@ -61,24 +65,19 @@ class Rig:
             state = "Worn"
         return f"{state} (Level {self._upgrade_level})"
 
-    def __str__(self):
+    def __str__(self):  #Readable description of the rig and its stored assets.
         assets = ", ".join(a.name + ("[E]" if a.encrypted else "") for a in self._storage) or "Empty"
         return f"Rig<{self._name}> {self.condition()} | Stored: {assets}"
 
-    # -------- Behaviours ----------
-    def take_hit(self):
-        """Apply one hit to the rig. If damage reaches threshold, rig becomes broken."""
+    def take_hit(self): #Apply one hit to the rig. If damage reaches threshold, rig becomes broken.
         if self._broken:
             return
         self._damage += 1
         if self._damage >= self._break_threshold():
             self._broken = True
 
-    def repair(self, token_available):
-        """
-        Repair the rig using a CryptoToken (token_available True if caller will consume token).
-        Returns True if repaired; False if no token or no repair needed.
-        """
+    def repair(self, token_available): #Repair the rig using a CryptoToken (token_available True if caller will consume token).
+        #Returns True if repaired; False if no token or no repair needed.
         if not token_available:
             return False
         # if not damaged and not broken, no repair needed (print per spec)
@@ -113,14 +112,7 @@ class Rig:
         self._storage.append(asset)
         return True
 
-    def release(self, name=None):
-        """
-        Release assets out of the rig into a hacker's inventory.
-        - If name is None: release ALL UNENCRYPTED assets (return list of moved assets).
-          Encrypted assets remain in storage.
-        - If name provided: release the first matching asset by name if it is NOT encrypted,
-          otherwise return [].
-        """
+    def release(self, name=None):  # Release assets out of the rig into a hacker's inventory.
         if name is None:
             movable = [a for a in self._storage if not a.encrypted]
             # keep only encrypted assets in storage
@@ -134,6 +126,5 @@ class Rig:
                 return [self._storage.pop(i)]
         return []
 
-    def unsecured_assets(self):
-        """Return list of unencrypted assets without removing them."""
+    def unsecured_assets(self): #Return list of unencrypted assets without removing them.
         return [a for a in self._storage if not a.encrypted]
