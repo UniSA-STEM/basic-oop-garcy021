@@ -1,9 +1,9 @@
 """
 File: Hacker.py
-Description: <A brief description of this Python module.>
-Author: <full name>
-ID: <student_id>
-Username: <username>
+Description: Contains the Hacker class controlling rigs, assets, attacks, encryption.
+Author: CHIRAG GARG
+ID: 110395864
+Username: GARCY021
 This is my own work as defined by the University's Academic Misconduct Policy.
 """
 
@@ -12,8 +12,6 @@ from Rig import Rig
 
 TRACE_THRESHOLD = 5  # risky actions blocked at or above this
 
-
-# ----- small helpers (kept private by convention) -----
 def _take_first_by_name(items, name):
     """Remove and return the first asset with the given name (case-insensitive), or None if absent."""
     for i, a in enumerate(items):
@@ -29,11 +27,8 @@ def _find_asset(items, name):
             return a
     return None
 
-
+#Hacker: manages inventory, rig, trace, combat, and asset operations.
 class Hacker:
-    """
-    Hacker: manages inventory, rig, trace, combat, and asset operations.
-    """
 
     def __init__(self, name):
         self._name = name
@@ -41,7 +36,6 @@ class Hacker:
         self._rig = None
         self._trace_level = 0
 
-    # ----- Properties -----
     @property
     def name(self):
         return self._name
@@ -63,13 +57,12 @@ class Hacker:
         """True when risky actions should be blocked due to high trace."""
         return self._trace_level >= TRACE_THRESHOLD
 
-    # ----- Display -----
+
     def __str__(self):
         inv = ", ".join(a.name + ("[E]" if a.encrypted else "") for a in self._inventory) or "Empty"
         rig_name = self._rig.name if self._rig else "No Rig"
         return f"Hacker<{self._name}> | Rig: {rig_name} | Trace: {self._trace_level} | Inv: {inv}"
 
-    # ----- Trace helpers -----
     def _risky_allowed(self):
         return self._trace_level < TRACE_THRESHOLD
 
@@ -79,7 +72,6 @@ class Hacker:
     def reduce_trace(self, n=1):
         self._trace_level = max(0, self._trace_level - n)
 
-    # ----- Core actions -----
     def acquire_rig(self, rig=None):
         """Spend one CryptoToken to attach a rig (create one if not provided)."""
         token = _take_first_by_name(self._inventory, "CryptoToken")
@@ -91,11 +83,8 @@ class Hacker:
         print(f"[{self._name}] Rig '{rig.name}' activated.")
         return True
 
+# Launch a Data Spike at target's rig. Requires both rigs, consumes 1 Data Spike, damages target, adds +1 trace.
     def launch_data_spike(self, target):
-        """
-        Launch a Data Spike at target's rig.
-        Requires both rigs, consumes 1 Data Spike, damages target, adds +1 trace.
-        """
         if not self._rig or not target.rig:
             return False
         if not self._risky_allowed():
@@ -107,17 +96,15 @@ class Hacker:
         self._add_trace(1)
         return True
 
+# If target.rig is broken and attacker has a Removable Drive in their rig (consumed),
+# move all UNENCRYPTED assets from target rig into this hacker's inventory.
     def extract_unsecured_from(self, target):
-        """
-        If target.rig is broken and attacker has a Removable Drive in their rig (consumed),
-        move all UNENCRYPTED assets from target rig into this hacker's inventory.
-        """
         if not self._rig or not target.rig or not target.rig.broken:
             return False
         if not self._risky_allowed():
             return False
 
-        # consume Removable Drive from attacker's rig storage
+# consume Removable Drive from attacker's rig storage
         drive = _take_first_by_name(self._rig.storage, "Removable Drive")
         if not drive:
             return False
@@ -131,9 +118,8 @@ class Hacker:
             return True
         return False
 
-    # ----- Storage transfers -----
+# Store one or all inventory items into the rig (if present and capacity allows).
     def store_to_rig(self, asset_name=None, all_items=False):
-        """Store one or all inventory items into the rig (if present and capacity allows)."""
         if not self._rig:
             return False
         if all_items:
@@ -176,7 +162,6 @@ class Hacker:
                 self._add_trace(1)
         return True
 
-    # ----- Encryption (consumes a Security Chip if available) -----
     def _consume_security_chip(self):
         # try inventory first, then rig storage
         chip = _take_first_by_name(self._inventory, "Security Chip")
@@ -220,7 +205,6 @@ class Hacker:
         asset.encrypted = False
         return True
 
-    # ----- Wrappers for rig upgrade/repair -----
     def upgrade_rig(self):
         if not self._rig:
             return False
@@ -237,7 +221,6 @@ class Hacker:
             return False
         return self._rig.repair(token_available=True)
 
-    # ----- Utility -----
     def scan_inventory(self, name):
         """Remove and return the first matching asset from inventory, or None."""
         for i, a in enumerate(self._inventory):
